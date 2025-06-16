@@ -168,7 +168,45 @@ Stopping an single broker.
 ~/kafka/bin/kafka-broker-stop.sh 1
 ```
 
-## First steps
+## First steps with consumers and producers
+The below creates a new Kafka topic to track product price updates. This creates a new `products.prices.changelog` with one partition. Since the replication-factor is 1, it is not replicated yet.
+```shell
+~/kafka/bin/kafka-topics.sh \
+    --create \
+    --topic products.prices.changelog \
+    --partitions 1 \
+    --replication-factor 1 \
+    --bootstrap-server localhost:9092
+```
+
+Send a new emssage to the topic using the producer script.
+```shell
+echo "coffee pods 10" | ~/kafka/bin/kafka-console-producer.sh \
+    --topic products.prices.changelog \
+    --bootstrap-server localhost:9092
+```
+
+Now we can begin reading the messages from the topic by starting a new consumer. By default the consumer will begin reading at the end of the topic, but we can include a flag to tell it to start from the beginning.
+```shell
+~/kafka/bin/kafka-console-consumer.sh \
+    --topic products.prices.changelog \
+    --from-beginning \
+    --bootstrap-server localhost:9092
+```
+
+We can open multiple consumer consoles in parallel to simlulate clients reading the prices changes as they occur.
+
+With multiple clients open in parallel, start a new producer in another shell. Each line we enter will send a new msg to each consumer. Use `Ctr-D` to send an EOF signal to stop the producer. 
+```shell
+~/kafka/bin/kafka-console-producer.sh \
+    --topic products.prices.changelog \
+    --bootstrap-server localhost:9092
+```
+
+### Kafka GUIs
+- (Free, open source) https://github.com/kafbat/kafka-ui
+- (Enterprise) https://www.datastreamhouse.com/
+
 
 ## Chapter Summaries
 ### Chapter 1
@@ -188,3 +226,14 @@ Stopping an single broker.
 - Kafka scales horizontally by adding more brokers to the cluster.
 - Kafka can run on general-purpose hardware.
 - Kafka is implemented in Java and Scala, but there are clients for other programming languages as well, for example, Python.
+
+### Chapter 2
+- Kafka includes many useful scripts for managing topics and producing or consuming messages.
+- Kafka topics can be created with the kafka-topics.sh command.
+- Messages can be produced with the kafka-console-producer.sh command.
+- Topics can be consumed with the kafka-console-consumer.sh command.
+- We can consume topics again from the beginning.
+- Multiple consumers can consume topics independently and at the same time.
+- Multiple producers can produce into topics in parallel.
+- Kafka GUIs enable users to view real-time messages within a topic, displaying details such as message key, value, and timestamp.
+- These GUIs aid in effective monitoring and troubleshooting of Kafka data streams.
