@@ -275,6 +275,47 @@ We can specify a `--group` parameter to allow designate consumer groups. T
     --bootstrap-server localhost:9092
 ```
 
+## Reliability
+### Acknowledgments
+Kafka uses ACKs to ensure data messages sent by producers are received. A producer property determines the reliability level.
+- `--producer-property acks=all` - (all or -1) Requires the message to have been replicated from the leader to all followers before the producer gets a reqsponse that the message has been received.
+  - Default setting since Kafka 3.0. 
+  - When creating topics, we can use the `min.insync.replicas` config arg to specify the min number of replicas that must be in sync before ACK is sent back to producers on `acks=all`.
+  - When a reasonable min replicas value us used, this can be considered at-least-once delivery, duplicate messages can occur.
+  - To achieve exactly-once delivery, Kafka allows for a producer property `--producer-property enable.idempotence=true` that will assign a sequence ID to a message. If the broker receives a message with the same sequence ID, it will simply reply with the ACK. If it receives a message out of order, it will reply with a negative ACK (NACK) to the producer.
+  - Strong recommended to keep idempotence enabled.
+- `--producer-property acks=1` - Only requires the leader to have received the message for the ACK is sent to the producer.
+- `--producer-property acks=0` - No ACK is sent from the broker back to the producer. Lowest latency but also the lowest reliability.
+  - Since the producer doesn't retry when an ACK isn't received, this can be considered at-most-once delivery.
+
+### Transactions
+Kafka allows for the use of transactions to ensure multiple actions are completed/rolled back together. The below Python code sends two messages to the broker within the same transaction. Note the use of `murmur2_random`, this allows it to be compatible with Java producers.
+
+```python
+from confluent_kafka import Producer
+
+producer = Producer({
+    'bootstrap.servers': 'localhost:9092',
+    'acks': 'all',
+    'enable.idempotence': True,
+    'partitioner': 'murmur2_random',
+    'transactional.id': 'transaction-1',
+})
+
+producer.init_transactions()
+producer.begin_transaction()
+
+producer.produce("customer.balance",
+    key="bob", value="-10")
+producer.produce("customer.balance",
+    key="alice", value="+10")
+
+producer.commit_transaction()
+```
+
+It's important to set the isolation.level to read_committed on the consumer, otherwise it would read messages that have not yet been committed by the producer's transaction. Consumers are agnostic of any transactions, brokers are solely responsible for handling those.
+
+
 ### Kafka GUIs
 - (Free, open source) https://github.com/kafbat/kafka-ui
 - (Enterprise) https://www.datastreamhouse.com/
@@ -344,3 +385,38 @@ Chapter 4
 - Brokers form the actual Kafka cluster and are responsible for receiving, storing, and making messages available for retrieval.
 - Clients are responsible for producing or consuming messages, and they connect to brokers.
 - There are various frameworks and tools to easily integrate Kafka into an existing corporate infrastructure.
+
+Chapter 5
+- ACKs are pillars of Kafka’s reliability.
+- ACKs are optional and configurable for each producer.
+- Producers can opt for no ACK (acks=0) for speed, but this sacrifices resilience.
+- Producers can choose to receive ACKs after the leader receives the message (acks=1) or after replication to all ISR (acks=all), with the latter now the default and most reliable choice.
+- Kafka offers three message delivery guarantees: at most once, at least once, and exactly once. At most once is achieved with acks=0; at least once is achieved with acks=all and sufficient minimum ISRs; and exactly once requires enabling idempotence and setting acks=all.
+- Transactions in Kafka enable atomic writes across multiple partitions, ensuring all messages in a transaction are written together or not at all, maintaining data consistency.
+- Kafka uses idempotent producers for reliable message production and a variation of the Two-Phase-Commit protocol to manage transaction commit markers, ensuring messages are processed exactly once.
+- Consumers must set the isolation.level to read_committed to avoid reading uncommitted messages, ensuring only fully completed transactions are processed to maintain data integrity.
+- Kafka’s transaction coordinator ensures reliability, even in the event of broker or producer crashes, although it introduces some performance overhead.
+- For each partition, there’s a broker acting as the leader, handling all requests, while followers replicate data by fetching from the leader.
+- If a partition leader becomes unavailable, an in-sync replica (ISR) takes over the leader role.
+- When the previous leader is back in sync, it can become the leader again, as Kafka aims to reinstate the original leader, known as the preferred leader.
+- In critical failures, Kafka can perform an unclean leader election by allowing non-ISRs to become leaders, which can lead to data loss.
+- Kafka’s leader-follower principle ensures high availability and fault tolerance in the event of broker failures.
+
+Chapter 6
+- High throughput doesn’t imply low latency, but both can be equally important.
+- Partitioning allows distributing the load and thus increasing performance.
+- Partitioning strategy involves identifying performance bottlenecks in consumers or Kafka and adjusting partitions accordingly.
+- Consider balancing partition counts to manage client RAM usage and operational complexity.
+- Start with a default of 12 partitions, scaling up as needed for high throughput, while considering operational and cost implications.
+- The number of partitions can never be decreased.
+- Increasing the number of partitions can lead to consuming messages in the wrong order.
+- A consumer group distributes load across its members.
+- Batching can increase the bandwidth but also the latency.
+- Batching can be configured with batch.size and linger.ms.
+- Producers can compress batches to reduce the required bandwidth, but this might increase latency.
+- The usage of acks=all reduces the performance of producers by a bit; the same goes for idempotence.
+- Brokers won’t decompress batches; this is the task of the consumer.
+- In most cases, brokers don’t require any further fine-tuning.
+- Brokers open file descriptors for every partition.
+- Kafka heavily depends on the operating system, necessitating specific operating system optimizations to maximize its performance.
+- Consumer performance depends mostly on the number of consumers in a consumer group but can be also fine-tuned by setting fetch.max.wait.ms and fetch.min.bytes.
