@@ -369,7 +369,7 @@ It's important to set the isolation.level to read_committed on the consumer, oth
 - Messages with the same key are produced to the same partition, so the order of those messages is guaranteed for a single producer.
 - Keys can also be used for log compaction to clean up deprecated data.
 
-Chapter 4
+### Chapter 4
 - A log is a sequential list where we add elements at the end and read them from a specific position.
 - Kafka is a distributed log in which the data of a topic is distributed to several partitions on several brokers.
 - Offsets are used to define the position of a message inside a partition.
@@ -386,7 +386,7 @@ Chapter 4
 - Clients are responsible for producing or consuming messages, and they connect to brokers.
 - There are various frameworks and tools to easily integrate Kafka into an existing corporate infrastructure.
 
-Chapter 5
+### Chapter 5
 - ACKs are pillars of Kafka’s reliability.
 - ACKs are optional and configurable for each producer.
 - Producers can opt for no ACK (acks=0) for speed, but this sacrifices resilience.
@@ -402,7 +402,7 @@ Chapter 5
 - In critical failures, Kafka can perform an unclean leader election by allowing non-ISRs to become leaders, which can lead to data loss.
 - Kafka’s leader-follower principle ensures high availability and fault tolerance in the event of broker failures.
 
-Chapter 6
+### Chapter 6
 - High throughput doesn’t imply low latency, but both can be equally important.
 - Partitioning allows distributing the load and thus increasing performance.
 - Partitioning strategy involves identifying performance bottlenecks in consumers or Kafka and adjusting partitions accordingly.
@@ -420,3 +420,22 @@ Chapter 6
 - Brokers open file descriptors for every partition.
 - Kafka heavily depends on the operating system, necessitating specific operating system optimizations to maximize its performance.
 - Consumer performance depends mostly on the number of consumers in a consumer group but can be also fine-tuned by setting fetch.max.wait.ms and fetch.min.bytes.
+
+### Chapter 7
+- Kafka 3.3.0 introduced KRaft, a new coordination method based on the Raft protocol, replacing ZooKeeper from Kafka 3.5.0 onward.
+- The Raft protocol resolves the complexities of achieving consensus in distributed systems, previously handled by ZooKeeper in Kafka.
+- KRaft integrates coordination directly within Kafka brokers, eliminating the need for a separate ZooKeeper system, thereby improving scalability and reducing operational complexity.
+- Controllers in KRaft manage partition assignments, leader elections, and failover mechanisms, ensuring cluster stability and facilitating efficient scaling and management of Kafka clusters.
+- KRaft introduces the __cluster_metadata topic, ensuring consistent metadata storage across all brokers, which was previously managed by ZooKeeper, thereby streamlining cluster operations and enhancing reliability.
+- Despite ZooKeeper being phased out in Kafka 4.0, a significant number of Kafka clusters currently rely on ZooKeeper for essential functions.
+- It’s advisable to migrate these clusters to KRaft promptly to use improved performance and simplified management offered by the Raft-based coordination.
+- ZooKeeper serves critical roles in Kafka, such as electing the controller and storing metadata (e.g., partition assignments and leader information), ensuring consistent state across all nodes.
+- While ZooKeeper’s reliability in maintaining a consistent state is crucial, its inherent performance limitations and operational complexities have prompted Kafka’s shift toward the more integrated KRaft solution.
+- Migrating metadata from ZooKeeper to KRaft in Kafka involves careful planning and execution without downtime. We start by upgrading our Kafka cluster to the latest version that supports ZooKeeper.
+- We provision three or five additional brokers as KRaft controllers with identical cluster IDs as the ZooKeeper cluster. - We enable migration mode and configure ZooKeeper connection details.
+- We configure existing brokers for metadata migration by enabling migration mode and specifying new controller-node connections. We verify successful metadata migration.
+- We transition normal brokers to KRaft mode by adjusting configurations, testing stability, and finalizing the migration. We disable migration mode on controllers and remove ZooKeeper connections for a full transition to KRaft mode.
+- Connecting to a Kafka cluster involves querying metadata to understand broker roles and partition leadership distribution across the cluster.
+- Clients initiate connectivity through a bootstrap server, typically one of several Kafka brokers listed in the --bootstrap-server parameter, which provides initial metadata.
+- To ensure resilience, production setups should specify multiple brokers in --bootstrap-server parameters or use DNS for load balancing.
+- If a broker failure occurs, clients can send a new metadata request to a bootstrap server to discover new partition leaders, enabling uninterrupted message production or consumption by establishing connections with the newly elected leaders.
