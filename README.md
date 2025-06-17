@@ -203,10 +203,71 @@ With multiple clients open in parallel, start a new producer in another shell. E
     --bootstrap-server localhost:9092
 ```
 
+Listing topics.
+```shell
+~/kafka/bin/kafka-topics.sh \
+    --list \
+    --bootstrap-server localhost:9092
+```
+
+Describing a topic.
+```shell
+~/kafka/bin/kafka-topics.sh \
+    --describe \
+    --topic products.prices.changelog \
+    --bootstrap-server localhost:9092
+```
+
+Deleting a topic.
+```shell
+~/kafka/bin/kafka-topics.sh \
+    --delete \
+    --topic products.prices.changelog \
+    --bootstrap-server localhost:9092
+```
+
+Recreating the topic with new configurations.
+Deleting a topic.
+```shell
+~/kafka/bin/kafka-topics.sh \
+    --create \
+    --topic products.prices.changelog \
+    --replication-factor 2 \
+    --partitions 2 \
+    --bootstrap-server localhost:9092
+```
+
+Altering an existing topic.
+```shell
+~/kafka/bin/kafka-topics.sh \
+    --alter \
+    --topic products.prices.changelog \
+    --partitions 3 \
+    --bootstrap-server localhost:9092
+```
+
+Producing messages containing keys.
+```shell
+~/kafka/bin/kafka-topics.sh \
+    --topic products.prices.changelog \
+    --property parse.key=true \
+    --property key.separator=: \
+    --bootstrap-server localhost:9092
+```
+
+Consuming those messages.
+```shell
+~/kafka/bin/kafka-topics.sh \
+    --from-beginning \
+    --topic products.prices.changelog \
+    --property print.key=true \
+    --property key.separator=":" \
+    --bootstrap-server localhost:9092
+```
+
 ### Kafka GUIs
 - (Free, open source) https://github.com/kafbat/kafka-ui
 - (Enterprise) https://www.datastreamhouse.com/
-
 
 ## Chapter Summaries
 ### Chapter 1
@@ -237,3 +298,22 @@ With multiple clients open in parallel, start a new producer in another shell. E
 - Multiple producers can produce into topics in parallel.
 - Kafka GUIs enable users to view real-time messages within a topic, displaying details such as message key, value, and timestamp.
 - These GUIs aid in effective monitoring and troubleshooting of Kafka data streams.
+
+### Chapter 3
+- Kafka organizes data in topics.
+- Topics can be distributed among partitions for increased performance.
+- Topics can be replicated among different brokers to improve reliability.
+- Topics can be created, viewed, altered, and deleted with the kafka-topics.sh script.
+- The number of partitions of a topic can never be decreased.
+- Partitions can be reassigned among brokers to redistribute load.
+- Complex partition reassignments can be performed with the kafka-reassign-partitions.sh script.
+- Kafka is optimized to exchange many (trillions of) small messages of 1 MB or less.
+- Kafka messages can be classified into states, deltas, events, and commands.
+- States contain the complete information about an object.
+- Deltas consist only of the changes and are therefore very data-efficient, but a single delta is often not very useful. They require either a context or a complete state.
+- Events add context to a message and describe a business event that happened.
+- Commands are used to instruct other systems to perform actions.
+- Data formats and schemas play a crucial role in Kafka to ensure consistency.
+- Messages in Kafka consist of technical metadata, including a timestamp, optional custom headers (metadata), an optional key, and a value, which is the main payload.
+- Messages with the same key are produced to the same partition, so the order of those messages is guaranteed for a single producer.
+- Keys can also be used for log compaction to clean up deprecated data.
