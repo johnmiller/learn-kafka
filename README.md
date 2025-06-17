@@ -227,7 +227,6 @@ Deleting a topic.
 ```
 
 Recreating the topic with new configurations.
-Deleting a topic.
 ```shell
 ~/kafka/bin/kafka-topics.sh \
     --create \
@@ -248,7 +247,7 @@ Altering an existing topic.
 
 Producing messages containing keys.
 ```shell
-~/kafka/bin/kafka-topics.sh \
+~/kafka/bin/kafka-console-producer.sh \
     --topic products.prices.changelog \
     --property parse.key=true \
     --property key.separator=: \
@@ -257,11 +256,22 @@ Producing messages containing keys.
 
 Consuming those messages.
 ```shell
-~/kafka/bin/kafka-topics.sh \
+~/kafka/bin/kafka-console-consumer.sh \
     --from-beginning \
     --topic products.prices.changelog \
     --property print.key=true \
     --property key.separator=":" \
+    --bootstrap-server localhost:9092
+```
+
+We can specify a `--group` parameter to allow designate consumer groups. T
+```shell
+~/kafka/bin/kafka-console-consumer.sh \
+    --from-beginning \
+    --topic products.prices.changelog \
+    --property print.key=true \
+    --property key.separator=":" \
+    --group products \
     --bootstrap-server localhost:9092
 ```
 
@@ -317,3 +327,20 @@ Consuming those messages.
 - Messages in Kafka consist of technical metadata, including a timestamp, optional custom headers (metadata), an optional key, and a value, which is the main payload.
 - Messages with the same key are produced to the same partition, so the order of those messages is guaranteed for a single producer.
 - Keys can also be used for log compaction to clean up deprecated data.
+
+Chapter 4
+- A log is a sequential list where we add elements at the end and read them from a specific position.
+- Kafka is a distributed log in which the data of a topic is distributed to several partitions on several brokers.
+- Offsets are used to define the position of a message inside a partition.
+- Kafka is used to exchange data between systems; it doesn’t replace databases, key-value stores, or search engines.
+- Partitions are used to scale topics horizontally and enable parallel processing.
+- Producers use partitioners to decide which partition to produce to.
+- Messages with the same keys end up in the same partition.
+- Consumer groups are used to scale consumers and allow them to share the workload, and one partition is always consumed by one consumer inside a group.
+- Replication is used to ensure reliability by duplicating partitions across multiple brokers within a Kafka cluster.
+- There is always one leader replica per partition that’s responsible for the coordination of the partition.
+- Kafka consists of a coordination cluster, brokers, and clients.
+- The coordination cluster is responsible for orchestrating the Kafka cluster—in other words, for managing brokers.
+- Brokers form the actual Kafka cluster and are responsible for receiving, storing, and making messages available for retrieval.
+- Clients are responsible for producing or consuming messages, and they connect to brokers.
+- There are various frameworks and tools to easily integrate Kafka into an existing corporate infrastructure.
