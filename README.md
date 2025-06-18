@@ -357,7 +357,7 @@ Earlier samples used the `--from-beginning` flag to tell it to begin reading fro
 Consumers include args in their requests to the broker to indicate how quickly it should retrieve messages. The `fetch.min.bytes` setting defaults to 1 and the `fetch.max.wait.ms` setting defaults to 500ms.
 
 ## Chapter Summaries
-### Chapter 1
+### Chapter 1 - Introduction to Apache Kafka
 - Kafka is a powerful distributed streaming platform operating on a publish-subscribe model, allowing seamless data flow between producers and consumers.
 - Widely adopted across industries, Kafka excels in real-time analytics, event sourcing, log aggregation, and stream processing, supporting organizations in making informed decisions based on up-to-the-minute data.
 - Kafka’s architecture prioritizes fault tolerance, scalability, and durability, ensuring reliable data transmission and storage even in the face of system failures.
@@ -375,7 +375,7 @@ Consumers include args in their requests to the broker to indicate how quickly i
 - Kafka can run on general-purpose hardware.
 - Kafka is implemented in Java and Scala, but there are clients for other programming languages as well, for example, Python.
 
-### Chapter 2
+### Chapter 2 - First steps with Kafka
 - Kafka includes many useful scripts for managing topics and producing or consuming messages.
 - Kafka topics can be created with the kafka-topics.sh command.
 - Messages can be produced with the kafka-console-producer.sh command.
@@ -386,7 +386,7 @@ Consumers include args in their requests to the broker to indicate how quickly i
 - Kafka GUIs enable users to view real-time messages within a topic, displaying details such as message key, value, and timestamp.
 - These GUIs aid in effective monitoring and troubleshooting of Kafka data streams.
 
-### Chapter 3
+### Chapter 3 - Exploring Kafka topics and messages
 - Kafka organizes data in topics.
 - Topics can be distributed among partitions for increased performance.
 - Topics can be replicated among different brokers to improve reliability.
@@ -405,7 +405,7 @@ Consumers include args in their requests to the broker to indicate how quickly i
 - Messages with the same key are produced to the same partition, so the order of those messages is guaranteed for a single producer.
 - Keys can also be used for log compaction to clean up deprecated data.
 
-### Chapter 4
+### Chapter 4 - Kafka as a distributed log
 - A log is a sequential list where we add elements at the end and read them from a specific position.
 - Kafka is a distributed log in which the data of a topic is distributed to several partitions on several brokers.
 - Offsets are used to define the position of a message inside a partition.
@@ -422,7 +422,7 @@ Consumers include args in their requests to the broker to indicate how quickly i
 - Clients are responsible for producing or consuming messages, and they connect to brokers.
 - There are various frameworks and tools to easily integrate Kafka into an existing corporate infrastructure.
 
-### Chapter 5
+### Chapter 5 - Reliability
 - ACKs are pillars of Kafka’s reliability.
 - ACKs are optional and configurable for each producer.
 - Producers can opt for no ACK (acks=0) for speed, but this sacrifices resilience.
@@ -438,7 +438,7 @@ Consumers include args in their requests to the broker to indicate how quickly i
 - In critical failures, Kafka can perform an unclean leader election by allowing non-ISRs to become leaders, which can lead to data loss.
 - Kafka’s leader-follower principle ensures high availability and fault tolerance in the event of broker failures.
 
-### Chapter 6
+### Chapter 6 - Performance
 - High throughput doesn’t imply low latency, but both can be equally important.
 - Partitioning allows distributing the load and thus increasing performance.
 - Partitioning strategy involves identifying performance bottlenecks in consumers or Kafka and adjusting partitions accordingly.
@@ -457,7 +457,7 @@ Consumers include args in their requests to the broker to indicate how quickly i
 - Kafka heavily depends on the operating system, necessitating specific operating system optimizations to maximize its performance.
 - Consumer performance depends mostly on the number of consumers in a consumer group but can be also fine-tuned by setting fetch.max.wait.ms and fetch.min.bytes.
 
-### Chapter 7
+### Chapter 7 - Cluster management
 - Kafka 3.3.0 introduced KRaft, a new coordination method based on the Raft protocol, replacing ZooKeeper from Kafka 3.5.0 onward.
 - The Raft protocol resolves the complexities of achieving consensus in distributed systems, previously handled by ZooKeeper in Kafka.
 - KRaft integrates coordination directly within Kafka brokers, eliminating the need for a separate ZooKeeper system, thereby improving scalability and reducing operational complexity.
@@ -476,7 +476,7 @@ Consumers include args in their requests to the broker to indicate how quickly i
 - To ensure resilience, production setups should specify multiple brokers in --bootstrap-server parameters or use DNS for load balancing.
 - If a broker failure occurs, clients can send a new metadata request to a bootstrap server to discover new partition leaders, enabling uninterrupted message production or consumption by establishing connections with the newly elected leaders.
 
-### Chapter 8
+### Chapter 8 - Producing and persisting messages
 - Producers in Kafka typically use either the official Kafka Java library or librdkafka. Avoid using other libraries due to potential lack of features and optimizations.
 - The producer workflow involves serialization, partitioning, and buffer management.
 - Handling acknowledgments (ACKs) in the producer includes timeout settings and retry mechanisms.
@@ -497,7 +497,7 @@ an ACK.
 - Delays in replication can slow down or halt message consumption and production, with ISR lag affecting HWM and consumer availability.
 - Adjusting parameters such as replica.lag.time.max.ms and acks=all can affect replication efficiency and system performance, requiring careful configuration for balance.
 
-### Chapter 9
+### Chapter 9 - Consuming messages
 - Kafka uses a fetch-based approach for consumers to retrieve messages.
 - Kafka brokers handle most of the coordination work, minimizing overhead.
 - Kafka brokers support rack IDs for fault tolerance and load distribution.
@@ -513,3 +513,19 @@ an ACK.
 - Static memberships and Cooperative Sticky Assignor optimize rebalance behavior.
 - Static memberships reduce rebalance frequency by extending session timeouts and using unique group instance IDs.
 - Cooperative Sticky Assignor improves rebalance efficiency by iteratively approaching the desired state.
+
+### Chapter 10 - Cleaning up messages
+- Kafka offers two main approaches for message cleanup: log retention and log compaction.
+- Log retention deletes messages based on age, while log compaction removes outdated data based on keys.
+- Log compaction ensures that only the latest message for each key is retained, which is suitable for scenarios such as updating customer data.
+- Log retention is simpler to implement, clearing messages based on age and supporting various use cases such as data privacy compliance and changelog data management.
+- Both methods have tradeoffs: log retention is easier but less precise, while log compaction requires more effort but ensures data accuracy.
+- Log retention can be configured based on partition size or time, offering flexibility in managing storage space.
+- Log compaction parameters determine the threshold for segment cleaning and ensure that only outdated data is removed.
+- Log compaction maintains message order and offsets, preserving data consistency.
+- If a consumer tries to fetch messages that don’t exist, the brokers simply return the next messages.
+- Kafka’s log cleaner periodically checks for outdated data and optimizes log storage by removing unnecessary segments.
+- Regular segment rotation ensures efficient log management, preventing log bloat and optimizing storage usage.
+- Kafka’s flexibility in message cleanup allows for tailored data management strategies based on specific use cases.
+- Tombstone messages facilitate selective deletion in log compaction, ensuring efficient data cleanup.
+- Tombstones are eventually removed to prevent log inflation, with configurable retention periods.
