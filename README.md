@@ -320,6 +320,31 @@ It's important to set the isolation.level to read_committed on the consumer, oth
 - (Free, open source) https://github.com/kafbat/kafka-ui
 - (Enterprise) https://www.datastreamhouse.com/
 
+### Producer Samples
+Sample that produces a message and prints a message regarding the result. The delivery_report method is called when it recieves the ACK response.
+```python
+from confluent_kafka import Producer
+producer = Producer({
+    'bootstrap.servers': 'localhost:9092',
+    'acks': -1,
+    'enable.idempotence': True,
+    'partitioner': 'murmur2_random',
+})
+
+def delivery_report(err, msg):
+    if err is not None:
+        print(f"Delivery failed for record {msg.key()}: {err}")
+        return
+    print(f"Record {msg.key()} successfully produced to {msg.topic()}
+        [{msg.partition()}] at offset {msg.offset()}")
+
+producer.produce(
+    "products.prices.changelog",
+    key="cola",
+    value="2",
+    on_delivery=delivery_report)
+```
+
 ## Chapter Summaries
 ### Chapter 1
 - Kafka is a powerful distributed streaming platform operating on a publish-subscribe model, allowing seamless data flow between producers and consumers.
@@ -439,3 +464,24 @@ It's important to set the isolation.level to read_committed on the consumer, oth
 - Clients initiate connectivity through a bootstrap server, typically one of several Kafka brokers listed in the --bootstrap-server parameter, which provides initial metadata.
 - To ensure resilience, production setups should specify multiple brokers in --bootstrap-server parameters or use DNS for load balancing.
 - If a broker failure occurs, clients can send a new metadata request to a bootstrap server to discover new partition leaders, enabling uninterrupted message production or consumption by establishing connections with the newly elected leaders.
+
+### Chapter 8
+- Producers in Kafka typically use either the official Kafka Java library or librdkafka. Avoid using other libraries due to potential lack of features and optimizations.
+- The producer workflow involves serialization, partitioning, and buffer management.
+- Handling acknowledgments (ACKs) in the producer includes timeout settings and retry mechanisms.
+- Kafka brokers delegate much of their work to clients, focusing on message reception and efficient message persistence.
+- Upon receiving a produce request, the broker writes data to the operating system’s page cache, potentially waiting for followers to replicate before sending
+an ACK.
+- Network threads manage message reception, queuing them for I/O threads to write to the filesystem.
+- Kafka relies on the operating system to persist messages to disk, with options to influence disk flush timing.
+- Broker components can be optimized and configured for specific use cases, with professional support advised for complex environments.
+- Kafka’s data structures—including metadata, checkpoints, and topics—organize and manage data within brokers.
+- Partitions divide topics into segments, each with log and index files for efficient data retrieval.
+- Log data and indices optimize message storage and retrieval within log segments.
+- Segments, based on size or time, manage partition growth and optimize data storage efficiency.
+- Replication involves followers fetching data from leaders, ensuring all brokers stay up-to-date.
+- In-sync replicas (ISRs) are followers that have received all messages from the leader within a specified time frame.
+- The Log End Offset (LEO) marks the last received message position, determining ISR status.
+- The High Watermark (HWM) indicates the offset replicated and committed to by all ISRs, affecting message consumption and availability.
+- Delays in replication can slow down or halt message consumption and production, with ISR lag affecting HWM and consumer availability.
+- Adjusting parameters such as replica.lag.time.max.ms and acks=all can affect replication efficiency and system performance, requiring careful configuration for balance.
