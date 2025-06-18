@@ -315,12 +315,11 @@ producer.commit_transaction()
 
 It's important to set the isolation.level to read_committed on the consumer, otherwise it would read messages that have not yet been committed by the producer's transaction. Consumers are agnostic of any transactions, brokers are solely responsible for handling those.
 
-
 ### Kafka GUIs
 - (Free, open source) https://github.com/kafbat/kafka-ui
 - (Enterprise) https://www.datastreamhouse.com/
 
-### Producer Samples
+### Producers
 Sample that produces a message and prints a message regarding the result. The delivery_report method is called when it recieves the ACK response.
 ```python
 from confluent_kafka import Producer
@@ -344,6 +343,18 @@ producer.produce(
     value="2",
     on_delivery=delivery_report)
 ```
+
+### Consumers
+Earlier samples used the `--from-beginning` flag to tell it to begin reading from the beginning instead of the end. Kafka also allows us to indicate a specific partition and offset.
+```shell
+~/kafka/bin/kafka-console-consumer.sh \
+	--topic products.prices.changelog \
+	--offset 0 \
+	--partition 0 \
+	--bootstrap-server localhost:9092
+```
+
+Consumers include args in their requests to the broker to indicate how quickly it should retrieve messages. The `fetch.min.bytes` setting defaults to 1 and the `fetch.max.wait.ms` setting defaults to 500ms.
 
 ## Chapter Summaries
 ### Chapter 1
@@ -485,3 +496,20 @@ an ACK.
 - The High Watermark (HWM) indicates the offset replicated and committed to by all ISRs, affecting message consumption and availability.
 - Delays in replication can slow down or halt message consumption and production, with ISR lag affecting HWM and consumer availability.
 - Adjusting parameters such as replica.lag.time.max.ms and acks=all can affect replication efficiency and system performance, requiring careful configuration for balance.
+
+### Chapter 9
+- Kafka uses a fetch-based approach for consumers to retrieve messages.
+- Kafka brokers handle most of the coordination work, minimizing overhead.
+- Kafka brokers support rack IDs for fault tolerance and load distribution.
+- Consumer groups help manage offsets and distribute workload among consumers.
+- - Offsets are stored in Kafka as part of the consumer group’s metadata in a special internal topic called __consumer_offsets.
+- Offsets are crucial for consumers to keep track of which messages they have already consumed.
+- The Kafka Rebalance Protocol coordinates task distribution among consumer group members.
+- Consumer groups facilitate parallel processing by distributing partitions among consumers.
+- Rebalances are triggered by changes in group membership, topic partitions, or consumer failures.
+- Range Assignor and Round Robin Assignor are strategies for partition assignment.
+- Range Assignor ensures that the same consumer handles the same partitions across topics.
+- Round Robin Assignor evenly distributes partitions among consumers when joins across topics aren’t required.
+- Static memberships and Cooperative Sticky Assignor optimize rebalance behavior.
+- Static memberships reduce rebalance frequency by extending session timeouts and using unique group instance IDs.
+- Cooperative Sticky Assignor improves rebalance efficiency by iteratively approaching the desired state.
