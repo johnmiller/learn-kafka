@@ -11,20 +11,20 @@ sudo apt update && sudo apt upgrade
 sudo apt install wget ca-certificates
 ```
 
-Opening WSL folder in windows explorer
-```shell
-explorer.exe .
-```
-
-Open current folder in VS Code
-```shell
-code .
-```
-
 Install Java
 ```shell
 sudo apt install openjdk-21-jre-headless
 java --version
+```
+
+To open a WSL folder in windows explorer
+```shell
+explorer.exe .
+```
+
+To open the current folder in VS Code
+```shell
+code .
 ```
 
 ## Installing Kafka
@@ -315,11 +315,11 @@ producer.commit_transaction()
 
 It's important to set the isolation.level to read_committed on the consumer, otherwise it would read messages that have not yet been committed by the producer's transaction. Consumers are agnostic of any transactions, brokers are solely responsible for handling those.
 
-### Kafka GUIs
+## Kafka GUIs
 - (Free, open source) https://github.com/kafbat/kafka-ui
 - (Enterprise) https://www.datastreamhouse.com/
 
-### Producers
+## Producers
 Sample that produces a message and prints a message regarding the result. The delivery_report method is called when it recieves the ACK response.
 ```python
 from confluent_kafka import Producer
@@ -344,7 +344,7 @@ producer.produce(
     on_delivery=delivery_report)
 ```
 
-### Consumers
+## Consumers
 Earlier samples used the `--from-beginning` flag to tell it to begin reading from the beginning instead of the end. Kafka also allows us to indicate a specific partition and offset.
 ```shell
 ~/kafka/bin/kafka-console-consumer.sh \
@@ -355,6 +355,94 @@ Earlier samples used the `--from-beginning` flag to tell it to begin reading fro
 ```
 
 Consumers include args in their requests to the broker to indicate how quickly it should retrieve messages. The `fetch.min.bytes` setting defaults to 1 and the `fetch.max.wait.ms` setting defaults to 500ms.
+
+## Kafka Connect
+### Configuring a worker
+Add a new configuration file `~/kafka/config/worker.properties`.
+```shell
+bootstrap.servers=localhost:9092
+group.id=connect
+config.storage.topic=connect-config
+offset.storage.topic=connect-offset
+status.storage.topic=connect-status
+key.converter=org.apache.kafka.connect.storage.StringConverter
+value.converter=org.apache.kafka.connect.storage.StringConverter   
+plugin.path=/home/john/kafka/libs/
+```
+
+Start the new worker.
+```shell
+~/kafka/bin/connect-distributed.sh ~/kafka/config/worker.properties
+```
+
+### Creating a connector
+Connectors are managed through the Rest API. In the below, we create a `FileStreamSource` connector to read data from a text file.
+
+> Due to it's minimal capabilities and poor error handling, it's not recommended to use the `FileStreamSource` connector in production. The `FilePulse` connector is better suited to real world use cases.
+
+We need to create a configuration file for the new connector, `~/kafka/config/connector.json`.
+```json
+{
+  "name": "customers-source",
+  "config": {
+    "connector.class": "FileStreamSource",
+    "tasks.max": "1",
+    "file": "/tmp/customers.txt",
+    "topic": "customers"
+  }
+}  
+```
+
+Now we can use `curl` to send the configuration to Kafka Connect. Note the @ symbol is needed when specifying a filename.
+```shell
+curl -X POST -H "Content-Type: application/json" \
+    --data @/home/john/kafka/config/file-source-connector.json \
+    http://localhost:8083/connectors
+```
+
+It should now show in the connector list when querying the cluster.
+```shell
+curl http://localhost:8083/connectors
+```
+
+And we can see it's status using the following:
+> This uses `jq` for formatting the the json response and may need to be installed first `sudo apt install jq`.
+```shell
+curl http://localhost:8083/connectors/customers-source/status | jq
+```
+
+The worker is running but can't find the source text file, let's seed it with some initial records.
+```shell
+echo "Irving" >> /tmp/customers.txt
+echo "Helly R." >> /tmp/customers.txt
+```
+
+Next, we'll start a consumer to read those messages. The file watcher keeps track of the last read line number, editing or deleting existing previously read rows will cause it to miss data.
+```shell
+~/kafka/bin/kafka-console-consumer.sh \
+    --topic customers \
+    --from-beginning \
+    --bootstrap-server localhost:9092
+```
+
+To delete a connector:
+```shell
+curl -X DELETE http://localhost:8083/connectors/customers-source
+```
+
+To pause a connector:
+```shell
+curl -X PUT http://localhost:8083/connectors/customers-source/pause
+```
+
+To resume:
+```shell
+curl -X PUT http://localhost:8083/connectors/customers-source/resume
+```
+
+There are two primary types of connectors:
+- Source connectors read data from external sources and produce it to Kafka.
+- Sink connectors consume data and write to external systems.
 
 ## Chapter Summaries
 ### Chapter 1 - Introduction to Apache Kafka
@@ -529,3 +617,26 @@ an ACK.
 - Kafka’s flexibility in message cleanup allows for tailored data management strategies based on specific use cases.
 - Tombstone messages facilitate selective deletion in log compaction, ensuring efficient data cleanup.
 - Tombstones are eventually removed to prevent log inflation, with configurable retention periods.
+
+### Chapter 11 - Integrating external systems with Kafka Connect
+Kafka Connect is a framework designed for scalable and reliable data integration between Kafka and other systems. It enables the movement of large amounts of data into and out of Kafka effortlessly using connectors.
+- Connectors can be classified as source connectors (importing data into Kafka) or sink connectors (exporting data from Kafka).
+- Each connector can be configured with various parameters to meet specific requirements.
+- Kafka Connect uses a REST API for managing connectors and worker configurations, and it can also be configured using a properties file at startup.
+- The REST API can be used to create, update, and delete connectors, as well as to check their status.
+- Worker configurations play a vital role in determining how Kafka Connect operates, including aspects such as resource allocation, task distribution, and the overall resilience of the integration process.
+- Error handling in Kafka Connect can be configured, including options for ignoring problematic entries via the errors.tolerance parameter.
+- Logging errors is essential for troubleshooting, achieved through the errors.log.enable parameter.
+- For sink connectors, data can be directed to a dead-letter queue for handling unprocessable records.
+- Retry mechanisms can be configured for transient errors using parameters such as errors.retry.timeout and errors.retry.delay.max.ms.
+- Single Message Transformations (SMTs) enable simple data modifications, including renaming fields, masking data, or moving values to keys during data transfer.
+- SMTs work for both source and sink connectors but aren’t suited for complex ETL tasks.
+- SMTs are set up via JSON in the Kafka Connect API, specifying transformation order, Java class types, and configurations. Common SMTs include ReplaceField, ValueToKey, ExtractField, and MaskField.
+- JDBC connectors have specific configurations for managing database connection retries and backoff strategies.
+- The operational mode of connectors can be set to either incrementing, timestamp-based, or both, depending on change tracking requirements.
+- Change data capture (CDC) can be implemented using connectors such as Debezium to monitor database changes.
+- PostgreSQL requires specific configurations (e.g., setting wal_level to logical) for effective change data capture.
+- Kafka Connect can automatically create Kafka topics based on database tables, ensuring seamless integration.
+- The topic.prefix parameter organizes topics generated by connectors and prevents naming conflicts.
+- Connector configurations can specify database connection details and table filtering using parameters such as table.include.list.
+- The framework’s flexibility allows for tailored solutions for various data integration scenarios, enhancing data flow management.
