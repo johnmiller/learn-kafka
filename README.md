@@ -665,3 +665,23 @@ Common window types include Tumbling Windows (nonoverlapping), Hopping Windows (
 - Kafka Streams parallelization relies on splitting tasks based on partitions. Tasks are the smallest processing units and are distributed across Kafka Streams instances.
 - State stores are created per task, and if an instance fails, the state store is rebuilt from the changelog topic. Configuring num.standby.replicas helps avoid rebuilding by using backup state stores.
 - Repartitioning occurs when operations such as selectKey() are performed. Kafka Streams creates an internal repartition topic for joins and aggregations to ensure correct processing based on keys, often splitting processing into subtopologies.
+
+### Chapter 13 - Governance
+- Proper schema management in Kafka helps ensure data consistency and compatibility.
+- Using schema registries allows for the centralized management of data schemas, enabling easier updates.
+- Schemas facilitate versioning, allowing producers and consumers to evolve independently without breaking changes.
+- Compatibility checks can be enforced to prevent incompatible schema updates that might lead to data problems.
+- Schemas can be serialized in different formats, such as Avro or JSON, enhancing interoperability across systems.
+- Transport Layer Security (TLS) using encryption, authentication, and authorization is mandatory for safeguarding data in Kafka.
+- Authentication in Kafka can be implemented using various mechanisms, such as Simple Authentication and Security Layer (SASL), to verify the identity of clients and ensure secure connections.
+- Authorization is managed through access control lists (ACLs) to regulate which users or applications can access specific Kafka resources, ensuring only authorized actions are permitted.
+- Data at rest must be encrypted using underlying storage systems, as Kafka lacks native support for this.
+- End-to-end encryption is recommended to secure sensitive data, implemented at the client level.
+- The key management process for encryption requires careful handling, potentially using tools such as Vault.
+- ZooKeeper must be secured as it stores critical Kafka metadata and transmits data unencrypted by default. Kafka 2.5 and later supports TLS connections for secure communication with ZooKeeper, and mutual TLS is advised for broker-to-ZooKeeper communication.
+- By sequentially configuring TLS listeners and restarting brokers, we can migrate from an unsecured Kafka cluster to a secured one without effecting availability.
+- Quotas are essential for protecting Kafka clusters from excessive load caused by misconfigured or malicious clients.
+- Quotas can limit the number of produce or consume requests and restrict CPU time on brokers.
+- Quotas can be set at the client ID level or user level. User-level quotas provide better reliability.
+- Kafka brokers monitor throttle-time metrics to detect and manage quota violations effectively.
+- Care must be taken when setting quotas, as overly aggressive limits can disrupt service and lead to cascading failures.
