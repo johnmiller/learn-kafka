@@ -685,3 +685,21 @@ Common window types include Tumbling Windows (nonoverlapping), Hopping Windows (
 - Quotas can be set at the client ID level or user level. User-level quotas provide better reliability.
 - Kafka brokers monitor throttle-time metrics to detect and manage quota violations effectively.
 - Care must be taken when setting quotas, as overly aggressive limits can disrupt service and lead to cascading failures.
+
+### Chapter 14 - Kafka reference architecture
+- Kafka management can benefit from automated and declarative approaches, although it’s not a strict requirement.
+- Manual creation of topics in production is strongly discouraged, as is the use of GUIs for such tasks.
+- The GitOps approach is recommended for managing Kafka resources by treating a Git repository as the source of truth.
+- Kafka resources such as topics, users, and ACLs should be created and modified through pull/merge requests in the Git repository.
+- Automated solutions, such as kcctl, simplify the management of Kafka Connect connectors compared to using the REST API directly.
+- Cruise Control for Apache Kafka is essential for balancing broker loads by redistributing partitions based on resource consumption.
+- Kafka administrators should monitor broker load and manually trigger Cruise Control’s analyzer for load balancing.
+- Automatic failure detection is available in Cruise Control, enabling proactive load balancing when targets aren’t met.
+- Kafka can be deployed on various infrastructures, including self-managed clusters, Kubernetes, and managed services.
+- The performance and reliability of Kafka are contingent on a well-planned infrastructure and a knowledgeable team.
+- It’s recommended to start with at least three brokers to ensure reliability and allow for scalability based on workload.
+- Storage solutions should prioritize reliable and fast disks, preferably multiple smaller SSDs over a few large ones.
+- Kafka supports tiered storage, allowing older data to be offloaded to more cost-effective storage solutions.
+- Sufficient RAM is critical, with a recommended minimum of 1 GB for JVM heaps per broker and an appropriate page cache based on data production rates.
+- Network performance is vital for Kafka, with a minimum recommendation of 1 GBit/s Ethernet and the use of independent storage networks to avoid performance drops.
+- The physical separation of brokers across different VM hosts or racks is essential to prevent data loss during hardware failures.
