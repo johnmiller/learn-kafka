@@ -727,3 +727,20 @@ Common window types include Tumbling Windows (nonoverlapping), Hopping Windows (
 - Cloud environments offer scalability but pose challenges such as network latencies and instance performance variability; monitoring should focus on network throughput and instance health.
 - Monitoring Kafka in Kubernetes involves using tools such as Prometheus and Grafana while tracking resource usage, with alerting based on critical thresholds.
 - In managed Kafka services, while infrastructure is handled by providers, monitoring application-level metrics such as consumer lag and message throughput is essential for meeting SLAs.
+
+### Chapter 16 - Disaster management
+- Disaster management in Kafka focuses on strategies to handle failures and minimize the likelihood of disasters.
+- The three types of failures in Kafka are network problems, broker problems, and persistent storage failures, often exacerbated by human error.
+- Network failures are common in distributed systems. Individual client connection problems can arise, but these are typically resolved quickly.
+- Broker problems can lead to data loss if messages aren’t properly committed before a broker failure. Ensuring acks=all and a sufficient number of in-sync replicas is critical for data delivery assurance.
+- Persistent storage failures are one of the most severe problems in Kafka. Ideally, these failures only affect a single broker, but they can lead to irreversible data corruption if not handled properly.
+- Conventional backups aren’t practical in Kafka due to continuous message production and consumption, which can lead to potential data loss and inconsistencies.
+- Stretched clusters reduce the likelihood of total failure by operating a Kafka cluster across multiple data centers, mitigating risks from data center outages.
+- Confluent Replicator provides a proprietary alternative to MirrorMaker for mirroring clusters.
+- An active-passive pairing involves one active cluster mirroring another passive cluster, taking over in case of a failure, but not reverting back to active.
+- Active-active pairing consists of two equally capable clusters mirroring each other, allowing continuous operation without needing to rebuild clusters during a failure.
+- In active-active configurations, consumers can read from both clusters and need to aggregate data appropriately.
+- Remote topics, introduced in MirrorMaker 2, prevent endless loops of topic mirroring while ensuring seamless data availability during failures.
+- The hub-and-spoke topology features a central cluster that aggregates data from smaller local clusters, allowing independent operation even if the central cluster is down.
+- Both active-active and hub-and-spoke topologies aim to maintain data consistency even during failures.
+- It’s recommended to avoid active-passive pairings and prefer active-active configurations for better resilience and performance.
