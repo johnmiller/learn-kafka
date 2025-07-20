@@ -703,3 +703,27 @@ Common window types include Tumbling Windows (nonoverlapping), Hopping Windows (
 - Sufficient RAM is critical, with a recommended minimum of 1 GB for JVM heaps per broker and an appropriate page cache based on data production rates.
 - Network performance is vital for Kafka, with a minimum recommendation of 1 GBit/s Ethernet and the use of independent storage networks to avoid performance drops.
 - The physical separation of brokers across different VM hosts or racks is essential to prevent data loss during hardware failures.
+
+### Chapter 15 - Kafka monitoring and alerting
+- Monitoring Kafka is vital for optimal performance and reliability.
+- Infrastructure monitoring is crucial as performance problems can stem from insufficient CPU, memory, storage, or network capacity.
+- Disk and network utilization should stay below 60% for effective partition rebalancing and to prevent data movement problems during broker failures.
+- Contextualizing metrics is important; prolonged high resource usage may indicate a need for scaling rather than just temporary spikes.
+- Kafka broker metrics, categorized under domains such as kafka_server and kafka_log, clarify their origin and significance.
+- Key metrics such as under-replicated partitions and under-minimum ISRs should ideally be 0 for broker health and cluster reliability.
+- Metrics related to request types and rejected messages help identify bottlenecks, emphasizing balanced load distribution among brokers.
+- Monitoring network processor metrics is essential; a low average idle percentage can indicate broker overload, requiring immediate resource scaling.
+- Client metrics are critical because even a strong Kafka cluster relies on clients for data production and consumption.
+- General client metrics focus on infrastructure health, as CPU and network limitations can lead to processing delays affecting data reliability.
+- Producer metrics such as record error total and request latency avg are vital for identifying message production problems.
+- Consumer metrics, including consumer lag and rebalances, assess consumption efficiency and detect potential slowdowns.
+- Kafka Connect metrics provide insights into connector health, highlighting the need to monitor dependencies on external systems.
+- Kafka Streams metrics, such as processed records and processing duration, offer insights into application performance for early problem detection.
+- Alerts are automated notifications based on predefined thresholds to detect anomalies early and reduce service disruptions.
+- Avoid alert fatigue by setting meaningful thresholds and smoothing metrics to ensure alerts reflect real problems.
+- Enhancing alerts with contextual information aids in efficient problem-solving during high-pressure situations.
+- Deploying Kafka on physical hardware provides control but requires monitoring of system components such as disk health and CPU utilization.
+- Kafka on VMs introduces complexities from resource contention; monitoring should cover both Kafka and the virtualization layer.
+- Cloud environments offer scalability but pose challenges such as network latencies and instance performance variability; monitoring should focus on network throughput and instance health.
+- Monitoring Kafka in Kubernetes involves using tools such as Prometheus and Grafana while tracking resource usage, with alerting based on critical thresholds.
+- In managed Kafka services, while infrastructure is handled by providers, monitoring application-level metrics such as consumer lag and message throughput is essential for meeting SLAs.
