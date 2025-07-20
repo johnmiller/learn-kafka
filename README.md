@@ -744,3 +744,20 @@ Common window types include Tumbling Windows (nonoverlapping), Hopping Windows (
 - The hub-and-spoke topology features a central cluster that aggregates data from smaller local clusters, allowing independent operation even if the central cluster is down.
 - Both active-active and hub-and-spoke topologies aim to maintain data consistency even during failures.
 - It’s recommended to avoid active-passive pairings and prefer active-active configurations for better resilience and performance.
+
+### Chapter 17 - Comparison with other technologies
+- IT architects must select the best technology for specific use cases, as solutions can vary between organizations.
+- Data on the inside is tightly coupled with services and requires high consistency, while data on the outside is service-agnostic and ideally immutable.
+- Integrating new technologies such as Kafka often involves adapting to existing IT landscapes rather than starting from scratch.
+- Classic messaging systems aim to efficiently transfer messages but often require centralized management and can introduce operational complexities.
+- Unlike traditional systems that delete data after consumption, Kafka retains messages, allowing consumers to access historical data independently.
+- Kafka promotes decentralization, enabling teams to manage messaging autonomously, making it ideal for adapting to evolving product needs.
+- HTTP-REST simplifies service communication but can create dependencies leading to systemic failures.
+- Synchronous protocols such as REST may cause cascading failures when services rely on each other for data.
+- Asynchronous communication via Kafka enables real-time data flow but adds complexity in managing separate APIs for inside and outside data.
+- Relational databases capture the current state of data but can create strong coupling risks when accessed by multiple services.
+- Kafka focuses on the historical aspect of data, allowing services to independently reconstruct their states.
+- We recommend using relational databases for internal data and Kafka for data exchange, enabling a flexible and decoupled architecture.
+- Kafka can serve as the core of a streaming platform, enabling real-time data flow and rapid responses to organizational events.
+- Stream processing tools such as Kafka Streams and Apache Flink, along with Kafka Connect, facilitate near-real-time data processing and enable seamless integration with third-party systems.
+- Effective management and automation, using a Git-based approach, enhance Kafka’s maintainability and agility across teams.
