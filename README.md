@@ -761,3 +761,18 @@ Common window types include Tumbling Windows (nonoverlapping), Hopping Windows (
 - Kafka can serve as the core of a streaming platform, enabling real-time data flow and rapid responses to organizational events.
 - Stream processing tools such as Kafka Streams and Apache Flink, along with Kafka Connect, facilitate near-real-time data processing and enable seamless integration with third-party systems.
 - Effective management and automation, using a Git-based approach, enhance Kafka’s maintainability and agility across teams.
+
+### Chapter 18 - Kafka's role in modern enterprise architectures
+- The data mesh decentralizes data management, empowering departments to take ownership of their data products while the data team focuses on technical support.
+- Key principles of the data mesh include treating data as a product, domain ownership, self-service data infrastructure, and decentralized governance.
+- Kafka acts as a central hub for real-time data exchange within a data mesh, enhancing data quality and accelerating data movement across the organization.
+- Core systems are essential but rigid; liberating data from them with Kafka enables agile services while minimizing direct interaction and maintenance costs.
+- Debezium facilitates real-time data exchange using change data capture (CDC), but new data structures must be created to avoid complexity and improve usability for other applications.
+- Kafka was designed for efficiently transferring large volumes of data in big data environments by using a log-based architecture for reliable delivery and buffering against load spikes.
+- Kafka efficiently handles the growing data volumes from industrial applications, enabling real-time monitoring, predictive maintenance, and centralized data collection for various use cases.
+- Tiered storage in Kafka allows organizations to balance performance and cost by retaining frequently accessed data while offloading historical data to lower-cost storage, streamlining data management.
+- Effective data integration and access management can be achieved through protocols such as Message Queuing Telemetry Transport (MQTT) for reliable data transmission, while centralized Kafka clusters simplify management and support self-service tools for teams.
+- Kafka isn’t a relational database, making it unsuitable for complex queries or maintaining the current state, as it lacks full ACID guarantees, particularly transactional isolation.
+- Kafka isn’t a synchronous communication interface; it operates asynchronously and requires relational databases for immediate feedback.
+- Kafka isn’t a file exchange platform, as it’s not designed for large files such as PDFs; it’s more effective to send machine-readable data or links to files stored externally.
+- Kafka isn’t ideal for small applications with low data volumes. In these cases, simpler solutions (e.g., a database) may be more efficient.
